@@ -1,3 +1,4 @@
+using Application.Activities.Queries;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -10,6 +11,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddMediatR(opt =>
+    opt.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -20,8 +24,8 @@ var services = scope.ServiceProvider;
 
 try
 {
-    var dbContext =  services.GetService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
+    var dbContext = services.GetService<AppDbContext>();
+    await dbContext!.Database.MigrateAsync();
     await DbInitializer.SeedData(dbContext);
 }
 catch (Exception ex)
