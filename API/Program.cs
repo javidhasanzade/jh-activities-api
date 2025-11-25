@@ -15,4 +15,19 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.MapControllers();
 
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+
+try
+{
+    var dbContext =  services.GetService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await DbInitializer.SeedData(dbContext);
+}
+catch (Exception ex)
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred while migrating the database.");
+}
+
 app.Run();
