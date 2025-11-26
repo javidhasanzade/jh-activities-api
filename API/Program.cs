@@ -1,5 +1,7 @@
 using Application.Activities.Queries;
+using Application.Activities.Validators;
 using Application.Core;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -12,8 +14,13 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddMediatR(opt =>
-    opt.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>());
+    {
+        opt.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>();
+        opt.AddOpenBehavior(typeof(ValidationBehavior<,>));
+    }
+);
 builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
+builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityValidator>();
 
 var app = builder.Build();
 
