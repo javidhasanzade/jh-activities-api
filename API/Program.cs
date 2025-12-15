@@ -2,7 +2,9 @@ using API.Middleware;
 using Application.Activities.Queries;
 using Application.Activities.Validators;
 using Application.Core;
+using Domain;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
@@ -10,6 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -23,13 +30,26 @@ builder.Services.AddMediatR(opt =>
 builder.Services.AddAutoMapper(typeof(MappingProfiles).Assembly);
 builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityValidator>();
 builder.Services.AddTransient<ExceptionMiddleware>();
+builder.Services.AddIdentityApiEndpoints<User>(opt => { opt.User.RequireUniqueEmail = true; })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+app.MapGroup("api").MapIdentityApi<User>();
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;
@@ -37,8 +57,9 @@ var services = scope.ServiceProvider;
 try
 {
     var dbContext = services.GetService<AppDbContext>();
+    var userManager = services.GetService<UserManager<User>>();
     await dbContext!.Database.MigrateAsync();
-    await DbInitializer.SeedData(dbContext);
+    await DbInitializer.SeedData(dbContext, userManager!);
 }
 catch (Exception ex)
 {
