@@ -1,7 +1,6 @@
 ﻿using Application.Activities.Commands;
 using Application.Activities.DTOs;
 using Application.Activities.Queries;
-using Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -36,5 +35,11 @@ public class ActivitiesController : BaseApiController
     public async Task<ActionResult> DeleteActivity(string id)
     {
         return HandleResult(await Mediator.Send(new DeleteActivity.Command { Id = id }));
+    }
+
+    [HttpPost("{id}/attend")]
+    public async Task<ActionResult> AttendActivity(string id)
+    {
+        return HandleResult(await Mediator.Send(new UpdateAttendance.Command { Id = id }));
     }
 }
