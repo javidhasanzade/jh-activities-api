@@ -5,6 +5,7 @@
 .idea
 bin
 obj
+API/appsettings.json
 
 # dotenv files
 .env
