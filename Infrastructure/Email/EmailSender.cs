@@ -45,7 +45,6 @@ public class EmailSender(IServiceScopeFactory scopeFactory) : IEmailSender<User>
         
         Console.WriteLine(message.HtmlBody);
 
-        // await resend.EmailSendAsync(message);
-        await Task.CompletedTask;
+        await resend.EmailSendAsync(message);
     }
 }
