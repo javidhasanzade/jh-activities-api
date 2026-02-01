@@ -46,11 +46,11 @@ public class AccountController(
     public async Task<ActionResult> ResendConfirmationEmail(string email)
     {
         var user = await signInManager.UserManager.Users.FirstOrDefaultAsync(x => x.Email == email);
-        
+
         if (user == null) return BadRequest("Invalid email");
-        
+
         await SendConfirmationEmailAsync(user, email);
-        
+
         return Ok();
     }
 
@@ -89,5 +89,20 @@ public class AccountController(
         await signInManager.SignOutAsync();
 
         return NoContent();
+    }
+
+    [HttpPost("change-password")]
+    public async Task<ActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+    {
+        var user = await signInManager.UserManager.GetUserAsync(User);
+
+        if (user == null) return Unauthorized();
+
+        var result = await signInManager.UserManager.ChangePasswordAsync(user, changePasswordDto.CurrentPassword,
+            changePasswordDto.NewPassword);
+
+        if (result.Succeeded) return Ok();
+        
+        return BadRequest(result.Errors.First().Description);
     }
 }
